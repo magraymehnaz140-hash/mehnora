@@ -1,0 +1,11 @@
+{
+  "name": "MEHNORA by Arsalaan",
+  "short_name": "MEHNORA",
+  "description": "Your social world",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F5F3FF",
+  "theme_color": "#7655E8"
+}
