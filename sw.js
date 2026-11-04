@@ -1,4 +1,4 @@
-const CACHE_NAME = "mehnora-v1";
+const CACHE_NAME = "mehnora-v2";
 
 const ASSETS = [
   "./",
