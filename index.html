@@ -117,7 +117,22 @@ body.dark input,body.dark textarea{color:white}
   <button class="header-btn" onclick="alert('Notifications coming soon!')">♡</button>
  </div>
 </header>
+<section id="authPanel" class="container">
+  <div class="welcome">
+    <h2 id="authTitle">Create your MEHNORA account</h2>
+    <p id="authSubtitle">Join your community today.</p>
+  </div>
 
+  <form id="authForm" class="create">
+    <input id="authName" type="text" placeholder="Your name" required>
+    <input id="authEmail" type="email" placeholder="Email address" required>
+    <input id="authPassword" type="password" placeholder="Password (minimum 8 characters)" minlength="8" required>
+    <button class="gradient-btn" id="authSubmit" type="submit">Sign Up</button>
+  </form>
+
+  <p id="authMessage" class="notice"></p>
+  <button class="gradient-btn" id="authSwitch" type="button">Already have an account? Log in</button>
+</section>
 <main class="container">
 
 <section id="home">
@@ -251,7 +266,86 @@ const MEHNORA_KEY = "sb_publishable_9EXmBTq1_UCM2J1-UzRHVg_eJysQPb6";
   MEHNORA_KEY
 );
 </script>
-<script>
+ <script>
+const authForm = document.getElementById("authForm");
+const authName = document.getElementById("authName");
+const authEmail = document.getElementById("authEmail");
+const authPassword = document.getElementById("authPassword");
+const authTitle = document.getElementById("authTitle");
+const authSubtitle = document.getElementById("authSubtitle");
+const authSubmit = document.getElementById("authSubmit");
+const authSwitch = document.getElementById("authSwitch");
+const authMessage = document.getElementById("authMessage");
+const authPanel = document.getElementById("authPanel");
+const appMain = document.querySelector("main.container");
+const appNav = document.querySelector("nav");
+
+let loginMode = false;
+
+function updateAuthScreen(session) {
+  authPanel.style.display = session ? "none" : "block";
+  appMain.style.display = session ? "block" : "none";
+  appNav.style.display = session ? "flex" : "none";
+}
+
+authSwitch.addEventListener("click", () => {
+  loginMode = !loginMode;
+  authName.style.display = loginMode ? "none" : "block";
+  authName.required = !loginMode;
+  authTitle.textContent = loginMode ? "Welcome Back" : "Create your MEHNORA account";
+  authSubtitle.textContent = loginMode ? "Log in to continue." : "Join your community today.";
+  authSubmit.textContent = loginMode ? "Log In" : "Sign Up";
+  authSwitch.textContent = loginMode ? "New here? Create an account" : "Already have an account? Log in";
+  authMessage.textContent = "";
+});
+
+authForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  authSubmit.disabled = true;
+  authMessage.textContent = "Please wait...";
+
+  try {
+    let result;
+
+    if (loginMode) {
+      result = await mehnoraDB.auth.signInWithPassword({
+        email: authEmail.value.trim(),
+        password: authPassword.value
+      });
+    } else {
+      result = await mehnoraDB.auth.signUp({
+        email: authEmail.value.trim(),
+        password: authPassword.value,
+        options: {
+          data: {
+            full_name: authName.value.trim()
+          }
+        }
+      });
+    }
+
+    if (result.error) throw result.error;
+
+    if (!loginMode && !result.data.session) {
+      authMessage.textContent = "Account created! Please check your email to confirm your account.";
+    } else {
+      authMessage.textContent = "Successfully logged in!";
+    }
+  } catch (error) {
+    authMessage.textContent = error.message;
+  } finally {
+    authSubmit.disabled = false;
+  }
+});
+
+mehnoraDB.auth.getSession().then(({ data }) => {
+  updateAuthScreen(data.session);
+});
+
+mehnoraDB.auth.onAuthStateChange((event, session) => {
+  updateAuthScreen(session);
+});
+ </script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js")
